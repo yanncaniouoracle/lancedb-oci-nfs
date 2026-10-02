@@ -15,10 +15,10 @@ resource "oci_functions_application" "lancedb_event_router" {
 }
 
 resource "oci_functions_function" "lancedb_event_router" {
-  count          = var.enable_lancedb_dataplane ? 1 : 0
-  application_id = oci_functions_application.lancedb_event_router[0].id
-  display_name   = "${local.cluster_name}-lancedb-event-router"
-  memory_in_mbs  = var.lancedb_function_memory_mbs
+  count              = var.enable_lancedb_dataplane ? 1 : 0
+  application_id     = oci_functions_application.lancedb_event_router[0].id
+  display_name       = "${local.cluster_name}-lancedb-event-router"
+  memory_in_mbs      = var.lancedb_function_memory_mbs
   timeout_in_seconds = 30
   source_details {
     image       = var.lancedb_ingestion_function_image
@@ -44,7 +44,7 @@ resource "oci_events_rule" "lancedb_object_changes" {
   is_enabled     = true
   condition_details {
     event_types = ["com.oraclecloud.objectstorage.createobject", "com.oraclecloud.objectstorage.updateobject", "com.oraclecloud.objectstorage.deleteobject"]
-    data = jsonencode({})
+    data        = jsonencode({})
   }
   actions {
     action {
@@ -60,7 +60,7 @@ resource "oci_identity_policy" "lancedb_function_queue_push" {
   compartment_id = var.compartment_ocid
   name           = "${local.cluster_name}-lancedb-function-queue-push"
   description    = "Allow only the event-router Function to publish to its Queue."
-  statements = ["Allow any-user to use queue-push in compartment id ${var.compartment_ocid} where all {request.principal.type = 'fnfunc', target.queue.id = '${oci_queue_queue.lancedb_events[0].id}'}"]
+  statements     = ["Allow any-user to use queue-push in compartment id ${var.compartment_ocid} where all {request.principal.type = 'fnfunc', target.queue.id = '${oci_queue_queue.lancedb_events[0].id}'}"]
 }
 
 resource "oci_identity_policy" "lancedb_storage_access" {
