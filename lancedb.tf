@@ -20,10 +20,7 @@ resource "oci_functions_function" "lancedb_event_router" {
   display_name       = "${local.cluster_name}-lancedb-event-router"
   memory_in_mbs      = var.lancedb_function_memory_mbs
   timeout_in_seconds = 30
-  source_details {
-    image       = var.lancedb_ingestion_function_image
-    source_type = "CONTAINER_IMAGE"
-  }
+  image              = var.lancedb_ingestion_function_image
   config = {
     QUEUE_ENDPOINT = oci_queue_queue.lancedb_events[0].messages_endpoint
     QUEUE_ID       = oci_queue_queue.lancedb_events[0].id
