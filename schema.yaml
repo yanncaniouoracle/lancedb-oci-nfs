@@ -113,6 +113,7 @@ variables:
   lancedb_ingestion_function_image:
     type: string
     title: "OCIR Object Event Router image"
+    description: "Full OCI image URI, for example iad.ocir.io/<namespace>/lancedb-oci-hybrid-search:0.1.0"
     visible: ${enable_lancedb_dataplane}
   lancedb_oci_bucket:
     type: string
