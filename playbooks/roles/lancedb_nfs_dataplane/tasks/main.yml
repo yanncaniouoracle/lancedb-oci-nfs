@@ -11,7 +11,10 @@
 
 - name: Install LanceDB data-plane packages
   ansible.builtin.dnf:
-    name: [git, python3, python3-pip]
+    # OL8's /usr/bin/python3 is Python 3.6.  The LanceDB service uses
+    # Python 3.10+ syntax and current LanceDB wheels, so keep the system
+    # Python for Pacemaker/Ansible and install a separate runtime.
+    name: [git, python3.11, python3.11-pip]
     state: present
 
 - name: Create the LanceDB installation directory
@@ -30,13 +33,35 @@
     force: false
   become_user: opc
 
-- name: Install the LanceDB ingestion virtual environment
-  ansible.builtin.pip:
-    name: ".[ingestion]"
+- name: Create the LanceDB Python 3.11 virtual environment
+  ansible.builtin.command:
+    cmd: python3.11 -m venv /opt/oci-lancedb-hybrid/.venv
+    creates: /opt/oci-lancedb-hybrid/.venv/bin/python
+  become_user: opc
+
+- name: Upgrade Python packaging tools in the LanceDB virtual environment
+  ansible.builtin.command:
+    argv:
+      - /opt/oci-lancedb-hybrid/.venv/bin/python
+      - -m
+      - pip
+      - install
+      - --upgrade
+      - pip
+      - setuptools
+      - wheel
+  become_user: opc
+
+- name: Install LanceDB ingestion dependencies
+  ansible.builtin.command:
+    argv:
+      - /opt/oci-lancedb-hybrid/.venv/bin/python
+      - -m
+      - pip
+      - install
+      - --upgrade
+      - ".[ingestion]"
     chdir: /opt/oci-lancedb-hybrid
-    virtualenv: /opt/oci-lancedb-hybrid/.venv
-    virtualenv_command: python3 -m venv
-    extra_args: --upgrade
   become_user: opc
 
 - name: Create LanceDB service configuration
