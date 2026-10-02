@@ -7,5 +7,6 @@ User=opc
 Group=opc
 WorkingDirectory=/opt/oci-lancedb-hybrid
 EnvironmentFile=/etc/lancedb-nfs/lancedb.env
+ExecStartPre=/usr/bin/install -d -o opc -g opc -m 0775 {{ lancedb_nfs_database_path }}
 ExecStart=/opt/oci-lancedb-hybrid/.venv/bin/oci-lancedb-ingestion-worker
 Restart=no
