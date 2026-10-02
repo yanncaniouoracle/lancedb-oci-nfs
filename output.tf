@@ -68,3 +68,12 @@ output "hacluster_user_password" {
   value     = [random_string.hacluster_user_password.result]
   sensitive = true
 }
+
+output "lancedb_event_pipeline" {
+  description = "Dedicated Object Storage event pipeline for the HA-NFS LanceDB table."
+  value = var.enable_lancedb_dataplane ? {
+    queue_id       = oci_queue_queue.lancedb_events[0].id
+    queue_endpoint = oci_queue_queue.lancedb_events[0].messages_endpoint
+    event_rule_id  = oci_events_rule.lancedb_object_changes[0].id
+  } : null
+}

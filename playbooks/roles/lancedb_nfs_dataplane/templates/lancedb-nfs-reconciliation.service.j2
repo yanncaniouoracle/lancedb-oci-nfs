@@ -1,0 +1,8 @@
+[Unit]
+Description=Reconcile Object Storage with the LanceDB shared table
+[Service]
+Type=oneshot
+User=opc
+Group=opc
+EnvironmentFile=/etc/lancedb-nfs/lancedb.env
+ExecStart=/opt/oci-lancedb-hybrid/.venv/bin/oci-lancedb-reconcile

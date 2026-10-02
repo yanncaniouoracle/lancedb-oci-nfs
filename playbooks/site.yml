@@ -33,3 +33,10 @@
   become: true
   roles:
     - nfs_client
+
+- name: Add Pacemaker-managed LanceDB shared-table ingestion
+  hosts: storage
+  become: true
+  roles:
+    - role: lancedb_nfs_dataplane
+      when: enable_lancedb_dataplane | bool

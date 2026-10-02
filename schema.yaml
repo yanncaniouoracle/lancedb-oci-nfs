@@ -91,9 +91,66 @@ groupings:
     - client_node_count
     - client_node_hostname_prefix
     - mount_point
+  - title: "LanceDB shared-table data plane"
+    visible: true
+    variables:
+    - enable_lancedb_dataplane
+    - lancedb_ingestion_function_image
+    - lancedb_oci_bucket
+    - lancedb_source_routes_json
+    - lancedb_nfs_table_name
+    - lancedb_nfs_vector_dimensions
+    - create_lancedb_instance_policy
+    - lancedb_dynamic_group_name
+    - create_lancedb_function_queue_policy
   
 # Add variable here ,  if you want to do input validation or else it does not need to be included here.
 variables:
+  enable_lancedb_dataplane:
+    type: boolean
+    title: "Enable LanceDB ingestion and reconciliation"
+    default: false
+  lancedb_ingestion_function_image:
+    type: string
+    title: "OCIR Object Event Router image"
+    visible: ${enable_lancedb_dataplane}
+  lancedb_oci_bucket:
+    type: string
+    title: "Authoritative Object Storage bucket"
+    visible: ${enable_lancedb_dataplane}
+  lancedb_source_routes_json:
+    type: string
+    title: "Source routing registry JSON"
+    default: "[]"
+    visible: ${enable_lancedb_dataplane}
+  lancedb_nfs_table_name:
+    type: string
+    title: "Shared LanceDB table name"
+    default: object_events_vectors
+    visible: ${enable_lancedb_dataplane}
+  lancedb_nfs_vector_dimensions:
+    type: integer
+    title: "Vector dimensions"
+    default: 768
+    visible: ${enable_lancedb_dataplane}
+  create_lancedb_instance_policy:
+    type: boolean
+    title: "Create Object Storage and Queue consumer policy"
+    default: false
+    visible: ${enable_lancedb_dataplane}
+  lancedb_dynamic_group_name:
+    type: string
+    title: "Existing NFS-node dynamic group"
+    visible:
+      and:
+        - ${enable_lancedb_dataplane}
+        - ${create_lancedb_instance_policy}
+  create_lancedb_function_queue_policy:
+    type: boolean
+    title: "Create Function Queue publisher policy"
+    default: false
+    visible: ${enable_lancedb_dataplane}
+
   tenancy_ocid:
     type: string
     title: "Tenancy OCID"

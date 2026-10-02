@@ -1,0 +1,89 @@
+---
+- name: Validate LanceDB shared-table configuration
+  ansible.builtin.assert:
+    that:
+      - groups['storage'] | length == 2
+      - lancedb_service_git_url | length > 0
+      - lancedb_oci_bucket | length > 0
+      - lancedb_ingestion_queue_id | length > 0
+      - lancedb_ingestion_queue_endpoint | length > 0
+      - lancedb_source_routes | length > 2
+
+- name: Install LanceDB data-plane packages
+  ansible.builtin.dnf:
+    name: [git, python3, python3-pip]
+    state: present
+
+- name: Create the LanceDB installation directory
+  ansible.builtin.file:
+    path: /opt/oci-lancedb-hybrid
+    state: directory
+    owner: opc
+    group: opc
+    mode: '0755'
+
+- name: Fetch the LanceDB data-plane source
+  ansible.builtin.git:
+    repo: "{{ lancedb_service_git_url }}"
+    dest: /opt/oci-lancedb-hybrid
+    version: "{{ lancedb_service_git_version }}"
+    force: false
+  become_user: opc
+
+- name: Install the LanceDB ingestion virtual environment
+  ansible.builtin.pip:
+    name: ".[ingestion]"
+    chdir: /opt/oci-lancedb-hybrid
+    virtualenv: /opt/oci-lancedb-hybrid/.venv
+    virtualenv_command: python3 -m venv
+    extra_args: --upgrade
+  become_user: opc
+
+- name: Create LanceDB service configuration
+  ansible.builtin.file:
+    path: /etc/lancedb-nfs
+    state: directory
+    owner: root
+    group: opc
+    mode: '0750'
+
+- name: Render LanceDB shared-table environment
+  ansible.builtin.template:
+    src: lancedb-nfs.env.j2
+    dest: /etc/lancedb-nfs/lancedb.env
+    owner: root
+    group: opc
+    mode: '0640'
+
+- name: Render Object Storage source routes
+  ansible.builtin.copy:
+    content: "{{ lancedb_source_routes }}\n"
+    dest: /etc/lancedb-nfs/source-routes.json
+    owner: root
+    group: opc
+    mode: '0640'
+
+- name: Install Pacemaker-owned LanceDB units
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: '0644'
+  loop:
+    - lancedb-nfs-ingestion-worker.service
+    - lancedb-nfs-ingestion-controller.service
+    - lancedb-nfs-reconciliation.service
+    - lancedb-nfs-reconciliation.timer
+
+- name: Create LanceDB resources after the NFS VIP in the shared group
+  ansible.builtin.command: >-
+    pcs resource create {{ item.name }} systemd:{{ item.unit }}
+    op monitor interval={{ item.interval }} timeout=120s --group nfsgroup
+  loop:
+    - { name: lancedb-nfs-ingestion-worker, unit: lancedb-nfs-ingestion-worker.service, interval: 30s }
+    - { name: lancedb-nfs-ingestion-controller, unit: lancedb-nfs-ingestion-controller.service, interval: 30s }
+    - { name: lancedb-nfs-reconciliation, unit: lancedb-nfs-reconciliation.timer, interval: 60s }
+  register: lancedb_pcs_create
+  changed_when: lancedb_pcs_create.rc == 0
+  failed_when: lancedb_pcs_create.rc != 0 and 'already exists' not in (lancedb_pcs_create.stderr | lower)
+  run_once: true
+  delegate_to: "{{ groups['storage'][0] }}"

@@ -1,0 +1,11 @@
+[Unit]
+Description=Pacemaker LanceDB shared-table ingestion worker
+After=network-online.target
+[Service]
+Type=simple
+User=opc
+Group=opc
+WorkingDirectory=/opt/oci-lancedb-hybrid
+EnvironmentFile=/etc/lancedb-nfs/lancedb.env
+ExecStart=/opt/oci-lancedb-hybrid/.venv/bin/oci-lancedb-ingestion-worker
+Restart=no

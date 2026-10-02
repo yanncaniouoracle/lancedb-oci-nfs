@@ -299,3 +299,20 @@ variable "use_non_uhp_fs1" {
   type    = bool
   default = true
 }
+
+# LanceDB shared-table data plane.  Enabled only for the HA-NFS alternative;
+# it adds a dedicated Object Storage event path and Pacemaker-managed writer.
+variable "enable_lancedb_dataplane" { type = bool, default = false }
+variable "lancedb_service_git_url" { type = string, default = "https://github.com/yanncaniouoracle/lancedb-oci-hybrid-search.git" }
+variable "lancedb_service_git_version" { type = string, default = "main" }
+variable "lancedb_nfs_database_path" { type = string, default = "/mnt/nfsshare/exports/lancedb-hot" }
+variable "lancedb_nfs_table_name" { type = string, default = "object_events_vectors" }
+variable "lancedb_nfs_vector_dimensions" { type = number, default = 768 }
+variable "lancedb_oci_bucket" { type = string, default = "" }
+variable "lancedb_source_routes_json" { type = string, default = "[]" }
+variable "lancedb_reconciliation_interval" { type = string, default = "1h" }
+variable "lancedb_ingestion_function_image" { type = string, default = "" }
+variable "lancedb_function_memory_mbs" { type = number, default = 256 }
+variable "create_lancedb_function_queue_policy" { type = bool, default = false }
+variable "create_lancedb_instance_policy" { type = bool, default = false }
+variable "lancedb_dynamic_group_name" { type = string, default = "" }

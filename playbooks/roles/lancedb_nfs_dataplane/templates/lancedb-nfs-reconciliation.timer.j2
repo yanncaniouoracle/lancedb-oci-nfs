@@ -1,0 +1,9 @@
+[Unit]
+Description=Pacemaker LanceDB reconciliation schedule
+[Timer]
+OnBootSec=10m
+OnUnitActiveSec={{ lancedb_reconciliation_interval }}
+Persistent=true
+Unit=lancedb-nfs-reconciliation.service
+[Install]
+WantedBy=timers.target

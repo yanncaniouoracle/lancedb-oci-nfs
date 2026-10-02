@@ -58,3 +58,17 @@ fs1_name=nfsshare
 fs1_lv_name="disk"
 fs1_vg_name="vg_nfs_disk"
 fs1_dir="/mnt/nfsshare"
+
+# Optional LanceDB shared-table data plane.  These resources are enabled only
+# when the root stack enables them and are managed by the NFS Pacemaker group.
+enable_lancedb_dataplane=${enable_lancedb_dataplane}
+lancedb_service_git_url="${lancedb_service_git_url}"
+lancedb_service_git_version="${lancedb_service_git_version}"
+lancedb_nfs_database_path="${lancedb_nfs_database_path}"
+lancedb_nfs_table_name="${lancedb_nfs_table_name}"
+lancedb_nfs_vector_dimensions=${lancedb_nfs_vector_dimensions}
+lancedb_oci_bucket="${lancedb_oci_bucket}"
+lancedb_ingestion_queue_id="${lancedb_ingestion_queue_id}"
+lancedb_ingestion_queue_endpoint="${lancedb_ingestion_queue_endpoint}"
+lancedb_source_routes='${lancedb_source_routes}'
+lancedb_reconciliation_interval="${lancedb_reconciliation_interval}"

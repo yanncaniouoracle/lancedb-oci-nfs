@@ -93,6 +93,18 @@ resource "oci_core_instance" "bastion" {
       fs1_disk_count     = var.fs1_disk_count,
       fs1_disk_size      = var.fs1_disk_size,
 
+      enable_lancedb_dataplane      = var.enable_lancedb_dataplane,
+      lancedb_service_git_url       = var.lancedb_service_git_url,
+      lancedb_service_git_version   = var.lancedb_service_git_version,
+      lancedb_nfs_database_path     = var.lancedb_nfs_database_path,
+      lancedb_nfs_table_name        = var.lancedb_nfs_table_name,
+      lancedb_nfs_vector_dimensions = var.lancedb_nfs_vector_dimensions,
+      lancedb_oci_bucket            = var.lancedb_oci_bucket,
+      lancedb_ingestion_queue_id    = var.enable_lancedb_dataplane ? oci_queue_queue.lancedb_events[0].id : "",
+      lancedb_ingestion_queue_endpoint = var.enable_lancedb_dataplane ? oci_queue_queue.lancedb_events[0].messages_endpoint : "",
+      lancedb_source_routes = var.lancedb_source_routes_json,
+      lancedb_reconciliation_interval = var.lancedb_reconciliation_interval,
+
     })
 
     destination = "/home/opc/playbooks/inventory/inventory"
@@ -125,7 +137,7 @@ resource "oci_core_instance" "bastion" {
 }
 
 resource "null_resource" "run_configure_sh" {
-  depends_on = [oci_core_instance.bastion, null_resource.notify_storage_server_nodes_fs1_block_attach_complete, null_resource.notify_storage_server_nodes_stonith_fencing_block_attach_complete]
+  depends_on = [oci_core_instance.bastion, null_resource.notify_storage_server_nodes_fs1_block_attach_complete, null_resource.notify_storage_server_nodes_stonith_fencing_block_attach_complete, oci_queue_queue.lancedb_events, oci_functions_function.lancedb_event_router, oci_events_rule.lancedb_object_changes]
   count      = var.bastion_node_count
 
   connection {
