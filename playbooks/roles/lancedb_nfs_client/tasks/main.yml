@@ -1,0 +1,36 @@
+---
+- name: Validate externally managed GPU-node mount configuration
+  ansible.builtin.assert:
+    that:
+      - nfs_server_ip | default('') | length > 0
+      - lancedb_gpu_mount_path | default('') | length > 0
+
+- name: Install NFS client packages on Ubuntu GPU nodes
+  ansible.builtin.apt:
+    name: nfs-common
+    state: present
+    update_cache: true
+  when: ansible_facts.os_family == 'Debian'
+
+- name: Create the GPU LanceDB mount path
+  ansible.builtin.file:
+    path: "{{ lancedb_gpu_mount_path }}"
+    state: directory
+    mode: '0755'
+
+- name: Persistently mount the HA NFS LanceDB export
+  ansible.posix.mount:
+    path: "{{ lancedb_gpu_mount_path }}"
+    src: "{{ nfs_server_ip }}:/mnt/nfsshare/exports"
+    fstype: nfs
+    opts: "hard,_netdev,vers=4.1,proto=tcp,noatime"
+    state: mounted
+
+- name: Verify the GPU path is NFS-backed
+  ansible.builtin.command: "findmnt --noheadings --target {{ lancedb_gpu_mount_path }} --output FSTYPE"
+  register: lancedb_gpu_mount_check
+  changed_when: false
+
+- name: Refuse a local-filesystem fallback
+  ansible.builtin.assert:
+    that: "'nfs' in lancedb_gpu_mount_check.stdout"

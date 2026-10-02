@@ -1,0 +1,6 @@
+---
+- name: Mount the HA NFS LanceDB export on externally managed GPU nodes
+  hosts: gpu_nodes
+  become: true
+  roles:
+    - lancedb_nfs_client
