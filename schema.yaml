@@ -304,6 +304,7 @@ variables:
     - "VM.Standard.E6.Ax.Flex"
     - "BM.Standard.E6.256"
     - "BM.Standard.E6.Ax.192"
+    - "BM.DenseIO.E5.128"
     - "VM.Optimized3.Flex"
     - "BM.Optimized3.36"
     - "BM.HPC2.36"

@@ -50,7 +50,11 @@ locals {
   derived_storage_server_shape      = (length(regexall("^Scratch", var.fs_type)) > 0 ? var.scratch_storage_server_shape : var.persistent_storage_server_shape)
   derived_storage_server_node_count = (var.fs_ha ? 2 : 1)
 
-  derived_fs1_disk_count = (length(regexall("DenseIO", local.derived_storage_server_shape)) > 0 ? 0 : (var.use_non_uhp_fs1 ? var.fs1_disk_count : 0))
+  # DenseIO describes the compute shape, not the storage architecture.  A
+  # Persistent deployment may use a DenseIO server as an NFS head while still
+  # exporting the shared Block Volume LVM.  Only the explicit Scratch
+  # filesystem mode uses local NVMe and therefore omits fs1 Block Volumes.
+  derived_fs1_disk_count = (length(regexall("^Scratch", var.fs_type)) > 0 ? 0 : (var.use_non_uhp_fs1 ? var.fs1_disk_count : 0))
 
   nfs                         = (length(regexall("^NFS", var.fs_name)) > 0 ? true : false)
   requested_ha_vip_private_ip = var.ha_vip_private_ip == null ? "" : trimspace(var.ha_vip_private_ip)
